@@ -1,7 +1,7 @@
 const express = require('express');
 require('dotenv').config()
 const cors = require('cors');
-const { MongoClient, ServerApiVersion } = require('mongodb');
+const { MongoClient, ServerApiVersion, ObjectId } = require('mongodb');
 
 
 const port = process.env.PORT || 5000;
@@ -15,13 +15,13 @@ app.use(express.json())
 
 
 const uri = `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASS}@cluster0.qoygz5c.mongodb.net/?retryWrites=true&w=majority`;
-console.log(uri);
 const client = new MongoClient(uri, { useNewUrlParser: true, useUnifiedTopology: true, serverApi: ServerApiVersion.v1 });
 
 async function run() {
     try {
         const categoriesCollection = client.db('resaleFurnitureStore').collection('categories');
         const productsCollection = client.db('resaleFurnitureStore').collection('products');
+        const blogsCollection = client.db('resaleFurnitureStore').collection('blogs');
 
         app.get('/categories', async (req, res) => {
             const query = {};
@@ -39,6 +39,17 @@ async function run() {
             const products = await productsCollection.find(query).toArray();
             res.send(products);
 
+        });
+        app.get('/blogs', async (req, res) => {
+            const query = {};
+            const blogs = await blogsCollection.find(query).toArray();
+            res.send(blogs);
+        });
+        app.get('/blogs/:id', async (req, res) => {
+            const id = req.params.id;
+            const query = { _id: ObjectId(id) };
+            const blogs = await blogsCollection.findOne(query);
+            res.send(blogs);
         })
 
 
