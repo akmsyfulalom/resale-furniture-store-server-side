@@ -22,6 +22,7 @@ async function run() {
         const categoriesCollection = client.db('resaleFurnitureStore').collection('categories');
         const productsCollection = client.db('resaleFurnitureStore').collection('products');
         const blogsCollection = client.db('resaleFurnitureStore').collection('blogs');
+        const usersCollection = client.db('resaleFurnitureStore').collection('users');
 
         app.get('/categories', async (req, res) => {
             const query = {};
@@ -50,6 +51,30 @@ async function run() {
             const query = { _id: ObjectId(id) };
             const blogs = await blogsCollection.findOne(query);
             res.send(blogs);
+        });
+        app.post('/users', async (req, res) => {
+            const user = req.body;
+            const result = await usersCollection.insertOne(user);
+            res.send(result);
+        });
+        app.patch('/users/admin/:id', async (req, res) => {
+            const id = req.params.id;
+            const filter = { _id: ObjectId(id) };
+            const options = { upsert: true };
+            const updatedDoc = {
+                $set: {
+                    role: 'admin'
+                }
+            }
+            const result = await usersCollection.updateOne(filter, updatedDoc, options);
+            res.send(result);
+        });
+        app.get('/users', async (req, res) => {
+            const role = req.query.role;
+            const query = { role: role };
+            console.log(query);
+            const result = await usersCollection.find(query).toArray();
+            res.send(result);
         })
 
 
@@ -73,4 +98,5 @@ app.get('/', async (req, res) => {
 app.listen(port, async () => {
     console.log(`Server listening on port ${port}`);
 
-})
+});
+
