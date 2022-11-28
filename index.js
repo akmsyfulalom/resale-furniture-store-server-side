@@ -104,7 +104,13 @@ async function run() {
             }
             const result = await productsCollection.updateOne(filter, updatedDoc, options);
             res.send(result);
-        })
+        });
+
+        app.get('/advertisement', async (req, res) => {
+            const query = { advertisement: true };
+            const result = await productsCollection.findOne(query).toArray();
+            res.send(result);
+        });
 
         app.get('/users', async (req, res) => {
             const role = req.query.role;
