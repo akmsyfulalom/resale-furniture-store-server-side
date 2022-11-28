@@ -29,6 +29,13 @@ async function run() {
             const categories = await categoriesCollection.find(query).toArray();
             res.send(categories);
         });
+
+        app.post('/products', async (req, res) => {
+            const addProduct = req.body;
+            const result = await productsCollection.insertOne(addProduct);
+            res.send(result);
+        })
+
         app.get('/products', async (req, res) => {
             const query = {};
             const products = await productsCollection.find(query).toArray();
@@ -41,6 +48,15 @@ async function run() {
             res.send(products);
 
         });
+
+        app.get('/product', async (req, res) => {
+            const email = req.query.email;
+            const query = { email: email }
+            const products = await productsCollection.find(query).toArray();
+            res.send(products);
+        })
+
+
         app.get('/blogs', async (req, res) => {
             const query = {};
             const blogs = await blogsCollection.find(query).toArray();
@@ -72,10 +88,29 @@ async function run() {
         app.get('/users', async (req, res) => {
             const role = req.query.role;
             const query = { role: role };
-            console.log(query);
             const result = await usersCollection.find(query).toArray();
             res.send(result);
-        })
+        });
+        app.get('/users/admin/:email', async (req, res) => {
+            const email = req.params.email;
+            const query = { email };
+            const user = await usersCollection.findOne(query);
+            res.send({ isAdmin: user.role === 'admin' });
+        });
+
+        app.get('/users/seller/:email', async (req, res) => {
+            const email = req.params.email;
+            const query = { email };
+            const user = await usersCollection.findOne(query);
+            res.send({ isSeller: user.role === 'seller' });
+        });
+
+        app.get('/users/buyers/:email', async (req, res) => {
+            const email = req.params.email;
+            const query = { email };
+            const user = await usersCollection.findOne(query);
+            res.send({ isBuyer: user.role === 'buyer' });
+        });
 
 
 
