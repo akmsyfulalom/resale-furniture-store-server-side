@@ -91,14 +91,19 @@ async function run() {
             const result = await usersCollection.updateOne(filter, updatedDoc, options);
             res.send(result);
         });
+        app.get('/advertisement', async (req, res) => {
+            const query = { advertisement: 'ads' };
+            const result = await productsCollection.find(query).toArray();
+            res.send(result);
+        });
 
-        app.put('/advertisement/id', async (req, res) => {
+        app.put('/advertisement/:id', async (req, res) => {
             const id = req.params.id;
             const filter = { _id: ObjectId(id) };
             const options = { upsert: true };
             const updatedDoc = {
                 $set: {
-                    advertisement: 'true'
+                    advertisement: 'ads'
 
                 }
             }
@@ -106,11 +111,14 @@ async function run() {
             res.send(result);
         });
 
-        app.get('/advertisement', async (req, res) => {
-            const query = { advertisement: true };
-            const result = await productsCollection.findOne(query).toArray();
+        app.delete('/user/:id', async (req, res) => {
+            const id = req.params.id;
+            console.log(id);
+            const filter = { _id: ObjectId(id) }
+            const result = await usersCollection.deleteOne(filter);
             res.send(result);
-        });
+        })
+
 
         app.get('/users', async (req, res) => {
             const role = req.query.role;
@@ -118,6 +126,21 @@ async function run() {
             const result = await usersCollection.find(query).toArray();
             res.send(result);
         });
+
+        app.put('/user/verify/:id', async (req, res) => {
+            const id = req.params.id;
+            const filter = { _id: ObjectId(id) };
+            const options = { upsert: true };
+            const updatedDoc = {
+                $set: {
+                    verified: 'true'
+                }
+            }
+            const result = await usersCollection.updateOne(filter, updatedDoc, options);
+            res.send(result);
+
+        })
+
         app.get('/users/admin/:email', async (req, res) => {
             const email = req.params.email;
             const query = { email };
