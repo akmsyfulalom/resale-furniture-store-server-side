@@ -23,6 +23,7 @@ async function run() {
         const productsCollection = client.db('resaleFurnitureStore').collection('products');
         const blogsCollection = client.db('resaleFurnitureStore').collection('blogs');
         const usersCollection = client.db('resaleFurnitureStore').collection('users');
+        const ordersCollection = client.db('resaleFurnitureStore').collection('orders');
 
         app.get('/categories', async (req, res) => {
             const query = {};
@@ -34,6 +35,18 @@ async function run() {
             const addProduct = req.body;
             const result = await productsCollection.insertOne(addProduct);
             res.send(result);
+        });
+
+        app.post('/addedorders', async (req, res) => {
+            const addOrder = req.body;
+            const result = await ordersCollection.insertOne(addOrder);
+            res.send(result);
+        });
+        app.get('/myOrder', async (req, res) => {
+            const email = req.query.email;
+            const query = { email: email };
+            const orders = await ordersCollection.find(query).toArray();
+            res.send(orders);
         })
 
         app.get('/products', async (req, res) => {
@@ -76,6 +89,11 @@ async function run() {
         });
         app.post('/users', async (req, res) => {
             const user = req.body;
+            const query = { email: user.email };
+            const queryResult = await usersCollection.findOne(query);
+            if (queryResult) {
+                return res.status(403).send({ message: 'forbidden access' })
+            }
             const result = await usersCollection.insertOne(user);
             res.send(result);
         });
@@ -127,6 +145,15 @@ async function run() {
             res.send(result);
         });
 
+        app.get('/verifiedUsers', async (req, res) => {
+            const verified = req.query.verified
+            const query = { verified: verified };
+            console.log(query)
+            const result = await usersCollection.find(query).toArray();
+
+            res.send(result);
+        })
+
         app.put('/user/verify/:id', async (req, res) => {
             const id = req.params.id;
             const filter = { _id: ObjectId(id) };
@@ -139,7 +166,9 @@ async function run() {
             const result = await usersCollection.updateOne(filter, updatedDoc, options);
             res.send(result);
 
-        })
+        });
+
+
 
         app.get('/users/admin/:email', async (req, res) => {
             const email = req.params.email;
