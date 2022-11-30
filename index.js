@@ -24,6 +24,7 @@ async function run() {
         const blogsCollection = client.db('resaleFurnitureStore').collection('blogs');
         const usersCollection = client.db('resaleFurnitureStore').collection('users');
         const ordersCollection = client.db('resaleFurnitureStore').collection('orders');
+        const wishlistsCollection = client.db('resaleFurnitureStore').collection('wishlists');
 
         app.get('/categories', async (req, res) => {
             const query = {};
@@ -42,6 +43,21 @@ async function run() {
             const result = await ordersCollection.insertOne(addOrder);
             res.send(result);
         });
+
+        app.post('/wishlist', async (req, res) => {
+            const addWishlist = req.body;
+            const result = await wishlistsCollection.insertOne(addWishlist);
+            res.send(result);
+        })
+
+        app.get('/myWishlist', async (req, res) => {
+            const email = req.query.email;
+            const query = { email: email };
+            const wishlist = await wishlistsCollection.find(query).toArray();
+            res.send(wishlist);
+        })
+
+
         app.get('/myOrder', async (req, res) => {
             const email = req.query.email;
             const query = { email: email };
