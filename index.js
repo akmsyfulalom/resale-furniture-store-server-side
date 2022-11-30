@@ -1,6 +1,7 @@
 const express = require('express');
 require('dotenv').config()
 const cors = require('cors');
+const jwt = require('jsonwebtoken');
 const { MongoClient, ServerApiVersion, ObjectId } = require('mongodb');
 
 
@@ -26,51 +27,85 @@ async function run() {
         const ordersCollection = client.db('resaleFurnitureStore').collection('orders');
         const wishlistsCollection = client.db('resaleFurnitureStore').collection('wishlists');
 
+
+        function verifyJWT(req, res, next) {
+
+            const authHeader = req.headers.authorization;
+
+            if (!authHeader) {
+                return res.status(401).send('unauthorized access');
+            }
+
+            const token = authHeader.split(' ')[1];
+
+            jwt.verify(token, process.env.ACCESS_TOKEN, function (err, decoded) {
+                console.log(decoded);
+                if (err) {
+                    return res.status(403).send({ message: 'forbidden access' })
+                }
+                req.decoded = decoded;
+                next();
+            })
+
+        }
+
         app.get('/categories', async (req, res) => {
+
             const query = {};
             const categories = await categoriesCollection.find(query).toArray();
             res.send(categories);
         });
 
         app.post('/products', async (req, res) => {
+
+
             const addProduct = req.body;
             const result = await productsCollection.insertOne(addProduct);
             res.send(result);
         });
 
         app.post('/addedorders', async (req, res) => {
+
             const addOrder = req.body;
             const result = await ordersCollection.insertOne(addOrder);
             res.send(result);
         });
 
         app.post('/wishlist', async (req, res) => {
+
             const addWishlist = req.body;
             const result = await wishlistsCollection.insertOne(addWishlist);
             res.send(result);
         })
 
         app.get('/myWishlist', async (req, res) => {
-            const email = req.query.email;
-            const query = { email: email };
+
+
+            const wlist = req.query.email;
+            const query = { email: wlist };
             const wishlist = await wishlistsCollection.find(query).toArray();
             res.send(wishlist);
         })
 
 
+
+
         app.get('/myOrder', async (req, res) => {
-            const email = req.query.email;
-            const query = { email: email };
+
+            const order = req.query.email;
+            const query = { email: order };
             const orders = await ordersCollection.find(query).toArray();
             res.send(orders);
         })
 
         app.get('/products', async (req, res) => {
+
             const query = {};
             const products = await productsCollection.find(query).toArray();
             res.send(products);
         });
         app.get('/products/:id', async (req, res) => {
+
             const id = req.params.id;
             const query = { category: id }
             const products = await productsCollection.find(query).toArray();
@@ -79,8 +114,9 @@ async function run() {
         });
 
         app.get('/product', async (req, res) => {
-            const email = req.query.email;
-            const query = { email: email }
+
+            const product = req.query.email;
+            const query = { email: product }
             const products = await productsCollection.find(query).toArray();
             res.send(products);
         });
@@ -154,6 +190,8 @@ async function run() {
         })
 
 
+
+
         app.get('/users', async (req, res) => {
             const role = req.query.role;
             const query = { role: role };
@@ -205,6 +243,22 @@ async function run() {
             const query = { email };
             const user = await usersCollection.findOne(query);
             res.send({ isBuyer: user.role === 'buyer' });
+        });
+
+
+
+
+
+
+        app.get('/jwt', async (req, res) => {
+            const email = req.query.email;
+            const query = { email: email };
+            const user = await usersCollection.findOne(query);
+            if (user) {
+                const token = jwt.sign({ email }, process.env.ACCESS_TOKEN, { expiresIn: '1d' })
+                return res.send({ accessToken: token });
+            }
+            res.status(403).send({ accessToken: '' })
         });
 
 
